@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Service;
+import ru.agapov.springintegrationproject.utils.UtilsForArrays;
 
 import java.util.Arrays;
 
@@ -14,23 +15,14 @@ public class MasterService {
     @Autowired
     private MessageChannel errorChannel;
 
-    public void processStrings(String[] input) throws Exception {
-        if (arrayNotNull(input)) {
-            if (arrayNotEmpty(input)) {
-                System.out.println("\nInput array: " + Arrays.toString(input) + "\n");
-                this.inputChannel.send(MessageBuilder.withPayload(input).build());
-            } else {
-                this.errorChannel.send(MessageBuilder.withPayload("Input array is empty!").build());
-            }
+    public void processStrings(String[] input) {
+        if (!UtilsForArrays.arrayNotNull(input)) {
+            this.errorChannel.send(MessageBuilder.withPayload("Input array is null!").build());
+        } else if (!UtilsForArrays.arrayNotEmpty(input)) {
+            this.errorChannel.send(MessageBuilder.withPayload("Input array is empty").build());
         } else {
-            this.errorChannel.send(MessageBuilder.withPayload("Input array is null").build());
+            System.out.println("\nInput array: " + Arrays.toString(input) + "\n");
+            this.inputChannel.send(MessageBuilder.withPayload(input).build());
         }
-    }
-
-    public boolean arrayNotNull(String[] array) {
-        return (array != null) ? true : false;
-    }
-    public boolean arrayNotEmpty(String[] array) {
-        return (array.length > 0) ? true : false;
     }
 }

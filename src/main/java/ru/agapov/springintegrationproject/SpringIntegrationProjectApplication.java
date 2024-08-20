@@ -7,17 +7,11 @@ import ru.agapov.springintegrationproject.services.MasterService;
 
 @SpringBootApplication
 public class SpringIntegrationProjectApplication {
-
-    public static void main(String[] args) throws Exception {
+    public static final String[] inputArray = new String[]{"Item1", "Item2", "Item3", "Item4", "Item5", "Item6"};
+    public static void main(String[] args) {
         ConfigurableApplicationContext ctx = SpringApplication.run(SpringIntegrationProjectApplication.class, args);
 
-        String[] input = new String[]{"Item1", "Item2", "Item3", "Item4", "Item5", "Item6"};
-
-//        String[] input1 = new String[]{};
-//
-//        String[] input2 = null;
-
-        ctx.getBean(MasterService.class).processStrings(input);
+        ctx.getBean(MasterService.class).processStrings(inputArray);
 
         ctx.close();
 

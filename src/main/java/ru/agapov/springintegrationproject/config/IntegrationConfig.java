@@ -2,36 +2,37 @@ package ru.agapov.springintegrationproject.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.integration.dsl.DirectChannelSpec;
+import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.dsl.IntegrationFlow;
-import org.springframework.integration.dsl.MessageChannels;
-import org.springframework.integration.splitter.AbstractMessageSplitter;
-import org.springframework.integration.support.MessageBuilder;
-import org.springframework.messaging.Message;
 
 
 @Configuration
 public class IntegrationConfig {
 
     @Bean
-    public DirectChannelSpec inputChannel() {
-        return MessageChannels.direct();
+    public DirectChannel inputChannel() {
+        return new DirectChannel();
     }
 
     @Bean
-    public DirectChannelSpec outputChannel() {
-        return MessageChannels.direct();
+    public DirectChannel outputChannel() {
+        return new DirectChannel();
     }
 
     @Bean
-    public DirectChannelSpec errorChannel() {
-        return MessageChannels.direct();
+    public DirectChannel errorChannel() {
+        return new DirectChannel();
+    }
+
+    @Bean
+    public CustomSplitter customSplitter() {
+        return new CustomSplitter();
     }
 
     @Bean
     public IntegrationFlow processFlow() {
         return IntegrationFlow.from(inputChannel())
-                .split(new CustomSplitter()) // Используем кастомный сплиттер для добавления хедеров
+                .split(customSplitter()) // Используем кастомный сплиттер для добавления хедеров
                 .route("headers.type",
                         mapping -> mapping
                                 .subFlowMapping("toUpperCaseString", sf -> sf.handle("slave2service","toUpperCaseString"))
@@ -49,31 +50,6 @@ public class IntegrationConfig {
                     System.err.println("Error occurred: " + message.getPayload());
                 })
                 .get();
-    }
-
-
-    public static class CustomSplitter extends AbstractMessageSplitter {
-        private int index = 0;
-
-        @Override
-        protected Object splitMessage(Message<?> message) {
-            String[] payload = (String[]) message.getPayload();
-            Object[] result = new Object[payload.length];
-
-            for (String item : payload) {
-                if (index % 2 !=0) {
-                    result[index] = MessageBuilder.withPayload(item)
-                            .setHeader("type", "toUpperCaseString")
-                            .build();
-                } else {
-                    result[index] = MessageBuilder.withPayload(item)
-                            .setHeader("type", "reverseString")
-                            .build();
-                }
-                index++;
-            }
-            return result;
-        }
     }
 
     @Bean
